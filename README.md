@@ -4,7 +4,7 @@
 
 Tento skript vám pomocí webového serveru zpřístupní cestu k vaším streamům v rámci lokální sítě.
 
-Podporované poskytovatelé internetové televize:
+Podporované poskytovatelé internetové televize:<br>
 O2TV, T-mobile TV GO, SledovaniTV.cz, Telly, Kuki TV, Magio GO, SledovanieTV.sk, REBIT.tv
 
 <p>
