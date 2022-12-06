@@ -2,7 +2,7 @@
 
 
 # nastavení serveru
-HOST = "localhost"
+HOST = "192.168.8.134"
 PORT = 8888
 # cesta k souborům
 FILES_DIR = "./"
@@ -21,6 +21,7 @@ from providers.rebit import rebit
 from providers.telly import telly
 from providers.tmobile import tmobile
 from providers.magio import magio
+from providers.orange import orange
 
 
 os.system("cls||clear")
@@ -35,6 +36,45 @@ input_stream = "#KODIPROP:inputstream=inputstream.adaptive\n#KODIPROP:inputstrea
 @route('/files/<filename:path>')
 def send_static(filename):
     return static_file(filename, root = FILES_DIR)
+
+
+@route("/orange/playlist")
+def orange_playlist():
+    t = ""
+    for x,y in orange.channels.items():
+        t = t + '#EXTINF:-1 provider="Orange TV" group-title="' + y["group"].split(" ", 1)[1] + '" tvg-logo="' + y["logo"] + '"' + catchup + y["name"] + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/orange/" + str(x) + ".m3u8\n"
+    if t != "":
+        t = "#EXTM3U\n" + t
+    response.content_type = 'text/plain; charset=UTF-8'
+    return t
+
+
+@route("/orange/<id>")
+def orange_play(id):
+    if 'utc' in request.query:
+        if 'utcend' in request.query:
+            end = request.query["utcend"]
+        else:
+            end = ""
+        stream = orange.get_catchup(id,
+ request.query["utc"], end)
+    else:
+        stream = orange.get_stream(id)
+    response.content_type = "application/x-mpegURL"
+    return redirect(stream)
+
+
+@route("/orange/list")
+def orange_list():
+    names = []
+    info = {'title': 'Orange TV'}
+    try:
+        for x,y in orange.channels.items():
+            names.append(('/orange/' + str(x) + '.m3u8', y["name"]))    
+        info["names"] = names
+    except:
+        return ""
+    return template(style_links, info)
 
 
 @route("/magio/playlist")
