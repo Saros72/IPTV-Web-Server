@@ -19,6 +19,7 @@
 <a href="/kuki/list">seznam</a> <a href="/kuki/playlist">playlist</a><p><b>Magio GO</b>
 <a href="/magio/list">seznam</a> <a href="/magio/playlist">playlist</a><p><b>SledovanieTV.sk</b>
 <a href="/stvsk/list">seznam</a> <a href="/stvsk/playlist">playlist</a><p><b>REBIT.tv</b>
-<a href="/rebit/list">seznam</a> <a href="/rebit/playlist">playlist</a></pre>
+<a href="/rebit/list">seznam</a> <a href="/rebit/playlist">playlist</a><p><b>Orange TV</b>
+<a href="/orange/list">seznam</a> <a href="/orange/playlist">playlist</a></pre>
         </body>
 </html>
