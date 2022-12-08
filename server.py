@@ -2,7 +2,7 @@
 
 
 # nastavení serveru
-HOST = "192.168.8.134"
+HOST = "localhost"
 PORT = 8888
 # cesta k souborům
 FILES_DIR = "./"
@@ -22,6 +22,7 @@ from providers.telly import telly
 from providers.tmobile import tmobile
 from providers.magio import magio
 from providers.orange import orange
+from providers.sweet import sweet
 
 
 os.system("cls||clear")
@@ -36,6 +37,41 @@ input_stream = "#KODIPROP:inputstream=inputstream.adaptive\n#KODIPROP:inputstrea
 @route('/files/<filename:path>')
 def send_static(filename):
     return static_file(filename, root = FILES_DIR)
+
+
+@route("/sweet/playlist")
+def sweet_playlist():
+    t = ""
+    for x,y in sweet.channels.items():
+        t = t + '#EXTINF:-1 provider="Sweet TV" tvg-logo="' + y["logo"] + '"' + catchup + y["name"] + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/sweet/" + str(x) + ".m3u8\n"
+    if t != "":
+        t = "#EXTM3U\n" + t
+    response.content_type = 'text/plain; charset=UTF-8'
+    return t
+
+
+@route("/sweet/<id>")
+def sweet_play(id):
+    if 'utc' in request.query:
+        stream = sweet.get_catchup(id,
+ request.query["utc"])
+    else:
+        stream = sweet.get_stream(id)
+    response.content_type = "application/vnd.apple.mpegurl"
+    return redirect(stream)
+
+
+@route("/sweet/list")
+def sweet_list():
+    names = []
+    info = {'title': 'Sweet TV'}
+    try:
+        for x,y in sweet.channels.items():
+            names.append(('/sweet/' + str(x) + '.m3u8', y["name"]))    
+        info["names"] = names
+    except:
+        return ""
+    return template(style_links, info)
 
 
 @route("/orange/playlist")
