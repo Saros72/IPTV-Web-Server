@@ -47,7 +47,7 @@ def get_catchup(id, utc, utcend):
     url =  "http://sledovanietv.sk/download/noAccess-cs.m3u8"
     try:
         cookies = {"access_token": token, "deviceId": device_id}
-        params = {"serviceType": "TIMESHIFT_TV", "subscriptionCode": subscription, "channelKey": quote(id.split(".")[0]), "deviceType": "MOBILE", "streamingProtocol": "HLS", "fromTimestamp": str(start), "toTimestamp": str(end)}
+        params = {"serviceType": "TIMESHIFT_TV", "subscriptionCode": subscription, "channelKey": quote(id.split(".")[0]), "deviceType": "MOBILE", "streamingProtocol": "HLS", "fromTimestamp": str(start) + "000", "toTimestamp": str(end) + "000"}
         req = requests.get("http://app01.gtm.orange.sk/sws/server/streaming/uris.json", params = params, headers = headers, cookies = cookies).json()
         url = req['uris'][0]['uri']
     except:
