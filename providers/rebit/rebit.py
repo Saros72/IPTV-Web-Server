@@ -20,6 +20,7 @@ if token != "":
     if req.status_code == 200:
         for r in req.json()["data"]:
             channels[r["channel"]] = {"name": r["title"], "logo": r["icon"], "id": r["id"]}
+        channels = {k : channels[k] for k in sorted(channels)}
 
 
 def get_stream(id):
