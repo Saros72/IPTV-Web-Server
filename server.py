@@ -23,6 +23,7 @@ from providers.tmobile import tmobile
 from providers.magio import magio
 from providers.orange import orange
 from providers.sweet import sweet
+from providers.touchtv import touchtv
 
 
 os.system("cls||clear")
@@ -37,6 +38,41 @@ input_stream = "#KODIPROP:inputstream=inputstream.adaptive\n#KODIPROP:inputstrea
 @route('/files/<filename:path>')
 def send_static(filename):
     return static_file(filename, root = FILES_DIR)
+
+
+@route("/touchtv/playlist")
+def touchtv_playlist():
+    t = ""
+    for x,y in touchtv.channels.items():
+        t = t + '#EXTINF:-1 provider="Touch TV" tvg-logo="' + y["logo"] + '"' + catchup + y["name"] + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/touchtv/" + str(x) + ".m3u8\n"
+    if t != "":
+        t = "#EXTM3U\n" + t
+    response.content_type = 'text/plain; charset=UTF-8'
+    return t
+
+
+@route("/touchtv/<id>")
+def touchtv_play(id):
+    if 'utc' in request.query:
+        stream = touchtv.get_catchup(id,
+ str(request.query["utc"]))
+    else:
+        stream = touchtv.get_stream(id)
+    response.content_type = "application/vnd.apple.mpegurl"
+    return redirect(stream)
+
+
+@route("/touchtv/list")
+def touchtv_list():
+    names = []
+    info = {'title': 'Touch TV'}
+    try:
+        for x,y in touchtv.channels.items():
+            names.append(('/touchtv/' + str(x) + '.m3u8', y["name"]))    
+        info["names"] = names
+    except:
+        return ""
+    return template(style_links, info)
 
 
 @route("/sweet/playlist")
