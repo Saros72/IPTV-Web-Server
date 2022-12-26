@@ -17,7 +17,8 @@ except:
     channels = {}
 UA ='Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:105.0) Gecko/20100101 Firefox/105.0'
 UUID = "07d2453f-0031-4573-95d5-16b3237eb497"
-headers = {'Host': 'api.sweet.tv', 'user-agent': UA, 'accept': 'application/json, text/plain, */*', 'accept-language': 'pl', 'x-device': '1;22;0;2;3.2.57', 'origin': 'https://sweet.tv', 'dnt': '1', 'referer': 'https://sweet.tv/'}
+headers = {'Host': 'api.sweet.tv', 'user-agent': UA, 'accept': 'application/json, text/plain, */*', 'accept-language': 'cs', 'x-device': '1;22;0;2;3.2.57', 'origin': 'https://sweet.tv', 'dnt': '1', 'referer': 'https://sweet.tv/'}
+stream_id = ""
 
 
 def get_token():
@@ -30,14 +31,21 @@ def get_token():
 
 
 def get_stream(id):
+    global stream_id
     try:
         id = id.split(".")[0]
         access_token = get_token()
         headers["authorization"] = "Bearer " + access_token
+        if stream_id != "":
+            try:
+                r = requests.post("https://api.sweet.tv/TvService/CloseStream.json", json = {"stream_id": int(stream_id)}, headers = headers).json()
+            except:
+                pass
         data = {'without_auth': True, 'channel_id': int(id), 'accept_scheme': ['HTTP_HLS'], 'multistream': True}
         req = requests.post("https://api.sweet.tv/TvService/OpenStream.json", json = data, headers = headers).json()
         if req["result"] == "OK":
             url = "https://" + req["http_stream"]["host"]["address"] + req["http_stream"]["url"]
+            stream_id = str(req["stream_id"])
         else:
              url = "http://sledovanietv.sk/download/noAccess-cs.m3u8"
     except:
@@ -46,6 +54,7 @@ def get_stream(id):
 
 
 def get_catchup(id, utc):
+    global stream_id
     try:
         id = int(id.split(".")[0])
         ids = []
@@ -55,11 +64,17 @@ def get_catchup(id, utc):
         data = {"epg_limit_prev":0,"epg_limit_next":1,"epg_current_time":int(utc),"need_epg":True,"need_icons":False,"need_big_icons":False,"need_categories":False,"need_offsets":False,"need_list":True,"channels":ids}
         req = requests.post("https://api.sweet.tv/TvService/GetChannels.json", json = data, headers = headers).json()
         if req["status"] == "OK":
+            if stream_id != "":
+                try:
+                    r = requests.post("https://api.sweet.tv/TvService/CloseStream.json", json = {"stream_id": int(stream_id)}, headers = headers).json()
+                except:
+                    pass
             epg_id = req["list"][0]["epg"][0]["id"]
             data = {'without_auth': True, 'channel_id': int(id), 'accept_scheme': ['HTTP_HLS'], 'multistream': True, 'epg_id': int(epg_id)}
             req = requests.post("https://api.sweet.tv/TvService/OpenStream.json", json = data, headers = headers).json()
             if req["result"] == "OK":
                 url = "https://" + req["http_stream"]["host"]["address"] + req["http_stream"]["url"]
+                stream_id = str(req["stream_id"])
             else:
                 url = "http://sledovanietv.sk/download/noAccess-cs.m3u8"
         else:

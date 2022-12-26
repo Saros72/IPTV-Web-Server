@@ -15,7 +15,8 @@ UA ='Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:105.0) Gecko/20100101 Firefox/1
 
 def main():
     channels = {}
-    headers = {'Host': 'api.sweet.tv', 'user-agent': UA, 'accept': 'application/json, text/plain, */*', 'accept-language': 'pl', 'x-device': '1;22;0;2;3.2.57', 'origin': 'https://sweet.tv', 'dnt': '1', 'referer': 'https://sweet.tv/'}
+    categories = {}
+    headers = {'Host': 'api.sweet.tv', 'user-agent': UA, 'accept': 'application/json, text/plain, */*', 'accept-language': 'cs', 'x-device': '1;22;0;2;3.2.57', 'origin': 'https://sweet.tv', 'dnt': '1', 'referer': 'https://sweet.tv/'}
     data = {'device': {'type': 'DT_Web_Browser', 'application': {'type': 'AT_SWEET_TV_Player'}, 'model': UA, 'firmware': {'versionCode': 1, 'versionString': '3.2.57'}, 'uuid': UUID, 'supported_drm': {'widevine_modular': True}, 'screen_info': {'aspectRatio': 6, 'width': 1366, 'height': 768}}, 'email': email, 'password': password}
     req = requests.post("https://api.sweet.tv/SigninService/Email.json", json = data, headers = headers).json()
     if req["result"] == "OK":
@@ -23,11 +24,13 @@ def main():
         with open("sweet_token.json", "w") as outfile:
             outfile.write(json_object)
         headers["authorization"] = "Bearer " + req["access_token"]
-        data = {'need_epg': False, 'need_list': True, 'need_categories': False, 'need_offsets': False, 'need_hash': False, 'need_icons': False, 'need_big_icons': False,}
+        data = {'need_epg': False, 'need_list': True, 'need_categories': True, 'need_offsets': False, 'need_hash': False, 'need_icons': False, 'need_big_icons': False,}
         req = requests.post("https://api.sweet.tv/TvService/GetChannels.json", json = data, headers = headers).json()
         if req["status"] == "OK":
+            for c in req["categories"]:
+                categories[c["id"]] = c["caption"]
             for ch in req["list"]:
-                channels[str(ch["id"])] = {"name": ch["name"].replace(" HD", ""), "logo": ch["icon_url"]}
+                channels[str(ch["id"])] = {"name": ch["name"].replace(" HD", ""), "logo": ch["icon_url"], "group": categories[ch["category"][0]]}
             json_object = json.dumps(channels, indent=4)
             with open("sweet_channels.json", "w") as outfile:
                 outfile.write(json_object)
