@@ -12,7 +12,7 @@ print("Spouští se server...")
 import requests, bottle, json, os
 from bottle import route, redirect, response, request, static_file, template, run
 from datetime import datetime
-from urllib.parse import quote
+from urllib.parse import urlparse, urlencode, parse_qsl, quote, unquote
 from providers.o2tv import o2tv
 from providers.kuki import kuki
 from providers.stvcz import stvcz
@@ -450,6 +450,12 @@ def kuki_list():
     return template(style_links, info)
 
 
+def replace_hd(n):
+    if o2tv.O2TV_REPLACE_HD == 1:
+        n = n.replace(" HD", "")
+    return n
+
+
 @route("/o2tv/playlist")
 def o2tv_playlist():
     try:
@@ -459,7 +465,7 @@ def o2tv_playlist():
         return ""
     t = ""
     for x,y in data.items():
-        t = t + '#EXTINF:-1 provider="O2 TV" tvg-logo="' + y["logo"] + '"' + catchup + y["name"].replace(" HD", "") + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/o2tv/" + quote(x) + ".m3u8\n"
+        t = t + '#EXTINF:-1 provider="O2 TV" tvg-logo="' + y["logo"] + '"' + catchup + replace_hd(y["name"]) + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/o2tv/" + quote(x.replace("/", "|")) + ".m3u8\n"
     if t != "":
         t = "#EXTM3U\n" + t
     response.content_type = 'text/plain; charset=UTF-8'
@@ -477,7 +483,7 @@ def o2tv_list():
     info = {'title': 'O2 TV'}
     try:
         for x,y in data.items():
-            names.append(('/o2tv/' + quote(x) + '.m3u8', y["name"].replace(" HD", "")))
+            names.append(('/o2tv/' + quote(x.replace("/", "|")) + '.m3u8', replace_hd(y["name"])))
         info["names"] = names
     except:
         return ""
@@ -486,6 +492,7 @@ def o2tv_list():
 
 @route("/o2tv/<id>")
 def o2tv_play(id):
+    id = unquote(id).replace("|", "/")
     if 'utc' in request.query:
         if 'utcend' in request.query:
             end = request.query["utcend"]
