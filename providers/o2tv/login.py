@@ -3,6 +3,9 @@
 # přihlašovací údaje
 username = ""
 password = ""
+# nahradit "HD" v názvu kanálu
+# ano = 1, ne = 0
+O2TV_REPLACE_HD = 1
 
 
 import requests, json, sys

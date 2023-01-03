@@ -3,6 +3,7 @@
 
 import requests, datetime, json, os
 from urllib.parse import quote
+from providers.o2tv.login import O2TV_REPLACE_HD
 
 
 try:
