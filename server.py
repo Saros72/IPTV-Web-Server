@@ -14,11 +14,13 @@ from bottle import route, redirect, response, request, static_file, template, ru
 from datetime import datetime
 from urllib.parse import urlparse, urlencode, parse_qsl, quote, unquote
 from providers.o2tv import o2tv
+from providers.o2tvsk import o2tvsk
 from providers.kuki import kuki
 from providers.stvcz import stvcz
 from providers.stvsk import stvsk
 from providers.rebit import rebit
 from providers.telly import telly
+from providers.net import net
 from providers.tmobile import tmobile
 from providers.magio import magio
 from providers.orange import orange
@@ -33,6 +35,7 @@ bottle.debug(True)
 catchup = ' catchup="append" catchup-source="?utc={utc}&utcend={utcend}",'
 #catchup = ' timeshift="15",'
 input_stream = "#KODIPROP:inputstream=inputstream.adaptive\n#KODIPROP:inputstream.adaptive.manifest_type=hls\n#KODIPROP:mimetype=application/x-mpegURL\n"
+bottle.debug(True)
 
 
 @route('/files/<filename:path>')
@@ -44,7 +47,7 @@ def send_static(filename):
 def touchtv_playlist():
     t = ""
     for x,y in touchtv.channels.items():
-        t = t + '#EXTINF:-1 provider="Touch TV" tvg-logo="' + y["logo"] + '"' + catchup + y["name"] + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/touchtv/" + str(x) + ".m3u8\n"
+        t = t + '#EXTINF:-1 provider="Touch TV" tvg-logo="' + y["logo"] + '"' + catchup + y["name"] + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/touchtv/" + str(x) + ".m3u8|User-Agent=okhttp/3.12.12\n"
     if t != "":
         t = "#EXTM3U\n" + t
     response.content_type = 'text/plain; charset=UTF-8'
@@ -68,7 +71,7 @@ def touchtv_list():
     info = {'title': 'Touch TV'}
     try:
         for x,y in touchtv.channels.items():
-            names.append(('/touchtv/' + str(x) + '.m3u8', y["name"]))    
+            names.append(('/touchtv/' + str(x) + '.m3u8|User-Agent=okhttp/3.12.12', y["name"]))    
         info["names"] = names
     except:
         return ""
@@ -236,6 +239,52 @@ def tmobile_play(id):
         stream = tmobile.get_stream(id)
     response.content_type = "application/x-mpegURL"
     return redirect(stream)
+
+
+@route("/net/playlist")
+def net_playlist():
+    t = ""
+    for x,y in net.channels.items():
+        t = t + '#EXTINF:-1 provider="4NET.TV" tvg-logo="https://epg.tv.itself.cz/files/channel_logos/' + str(x) + '.png"' + catchup + y[0].replace(" HD", "") + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/net/" + str(x) + ".m3u8\n"
+    if t != "":
+        t = "#EXTM3U\n" + t
+    response.content_type = 'text/plain; charset=UTF-8'
+    return t
+
+
+@route("/net/<id>")
+def net_play(id):
+    if 'utc' in request.query:
+        if 'utcend' in request.query:
+            end = request.query["utcend"]
+        else:
+            now = int(datetime.now().timestamp())
+            end = int(request.query["utc"]) + 10800
+            if end > now:
+                end = now - 60
+        try:
+            stream = net.get_catchup(str(id.split(".")[0]),
+ request.query["utc"], str(end))
+        except:
+            stream = net.channels[int(id.split(".")[0])][1]
+    else:
+        stream = net.channels[int(id.split(".")[0])][1]
+    response.content_type = "application/x-mpegURL"
+    return redirect(stream)
+
+
+@route("/net/list")
+def net_list():
+    names = []
+    info = {'title': '4NET.TV'}
+    try:
+        for x,y in net.channels.items():
+            names.append(('/net/' + str(x) + '.m3u8', y[0].replace(" HD", "")))
+        
+        info["names"] = names
+    except:
+        return ""
+    return template(style_links, info)
 
 
 @route("/telly/playlist")
@@ -451,9 +500,59 @@ def kuki_list():
 
 
 def replace_hd(n):
-    if o2tv.O2TV_REPLACE_HD == 1:
+    if o2tv.O2TV_REPLACE_HD == 1 or o2tvsk.O2TV_REPLACE_HD == 1:
         n = n.replace(" HD", "")
     return n
+
+
+@route("/o2tvsk/playlist")
+def o2tvsk_playlist():
+    try:
+        with open("./providers/o2tvsk/o2sk_ids.json", 'r') as openfile:
+            data = json.load(openfile)
+    except:
+        return ""
+    t = ""
+    for x,y in data.items():
+        t = t + '#EXTINF:-1 provider="O2 TV SK" tvg-logo="' + y["logo"] + '"' + catchup + replace_hd(y["name"]) + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/o2tvsk/" + quote(x.replace("/", "|")) + ".m3u8\n"
+    if t != "":
+        t = "#EXTM3U\n" + t
+    response.content_type = 'text/plain; charset=UTF-8'
+    return t
+
+
+@route("/o2tvsk/list")
+def o2tvsk_list():
+    try:
+        with open("./providers/o2tvsk/o2sk_ids.json", 'r') as openfile:
+            data = json.load(openfile)
+    except:
+        return ""
+    names = []
+    info = {'title': 'O2 TV SK'}
+    try:
+        for x,y in data.items():
+            names.append(('/o2tvsk/' + quote(x.replace("/", "|")) + '.m3u8', replace_hd(y["name"])))
+        info["names"] = names
+    except:
+        return ""
+    return template(style_links, info)
+
+
+@route("/o2tvsk/<id>")
+def o2tvsk_play(id):
+    id = unquote(id).replace("|", "/")
+    if 'utc' in request.query:
+        if 'utcend' in request.query:
+            end = request.query["utcend"]
+        else:
+            end = ""
+        stream = o2tvsk.get_catchup(id,
+ request.query["utc"], end)
+    else:
+        stream = o2tvsk.get_stream(id)
+    response.content_type = "application/x-mpegURL"
+    return redirect(stream)
 
 
 @route("/o2tv/playlist")
@@ -512,4 +611,4 @@ def home():
 
 
 if __name__ == "__main__":
-    run(host = HOST, port = PORT)
+    run(host = HOST, port = PORT, reloader = False)
