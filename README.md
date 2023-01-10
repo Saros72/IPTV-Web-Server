@@ -15,7 +15,7 @@ O2TV, T-mobile TV GO, SledovaniTV.cz, Telly, 4NET.TV, Kuki TV, Magio GO, Sledova
 
 <b>DONATE</b>
 
-<a href="https://www.paypal.me/petrsaros">PayPal</a>
+<a href="https://www.paypal.me/petrsarka">PayPal</a>
 
 <a href="https://revolut.me/petrsarka">Revolut</a> (@petrsarka)
 
