@@ -25,6 +25,8 @@
 <a href="/orange/list">seznam</a> <a href="/orange/playlist">playlist</a><p><b>Sweet TV</b>
 <a href="/sweet/list">seznam</a> <a href="/sweet/playlist">playlist</a><p><b>Touch TV</b>
 <a href="/touchtv/list">seznam</a> <a href="/touchtv/playlist">playlist</a><p><b>O2 TV SK</b>
-<a href="/o2tvsk/list">seznam</a> <a href="/o2tvsk/playlist">playlist</a></pre>
+<a href="/o2tvsk/list">seznam</a> <a href="/o2tvsk/playlist">playlist</a><p><b>Antik TV (1)</b>
+<a href="/antik/list">seznam</a> <a href="/antik/playlist">playlist</a><p><b>Antik TV (2)</b>
+<a href="/antik/list2">seznam</a> <a href="/antik/playlist2">playlist</a></pre>
         </body>
 </html>
