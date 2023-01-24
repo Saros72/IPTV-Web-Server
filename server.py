@@ -26,6 +26,8 @@ from providers.magio import magio
 from providers.orange import orange
 from providers.sweet import sweet
 from providers.touchtv import touchtv
+from providers.antik import antik
+import czech_sort
 
 
 os.system("cls||clear")
@@ -35,6 +37,7 @@ bottle.debug(True)
 catchup = ' catchup="append" catchup-source="?utc={utc}&utcend={utcend}",'
 #catchup = ' timeshift="15",'
 input_stream = "#KODIPROP:inputstream=inputstream.adaptive\n#KODIPROP:inputstream.adaptive.manifest_type=hls\n#KODIPROP:mimetype=application/x-mpegURL\n"
+antik_key_cache = {"access": 1}
 bottle.debug(True)
 
 
@@ -603,6 +606,130 @@ def o2tv_play(id):
         stream = o2tv.get_stream(id)
     response.content_type = "application/x-mpegURL"
     return redirect(stream)
+
+
+@route("/antik/playlist2")
+def antik_playlist2():
+    url = antik.playlist_url2
+    if url == "":
+        return ""
+    r = requests.get(url).json()[0]["channels"]
+    channels = []
+    for ch in r:
+        t = ch["channel_title"]
+        for s in ch["stream"]:
+            u = s["url"].split("/")[-2]
+            if "tzshift" not in u:
+                channels.append(t + "|" + u)
+    r = czech_sort.sorted(channels)
+    t = ""
+    for i in r:
+        c = i.split("|")
+        t = t + '#EXTINF:-1 provider="Antik TV",' + c[0] + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/antik/" + str(c[1]) + ".m3u8\n"
+    t = "#EXTM3U\n" + t
+    response.content_type = 'text/plain; charset=UTF-8'
+    return t
+
+
+@route("/antik/playlist")
+def antik_playlist():
+    url = antik.playlist_url
+    if url == "":
+        return ""
+    r = requests.get(url).text
+    ch = []
+    r = r.split("/playlist.m3u8")
+    for c in r:
+        ch.append(c.split("|hls")[0].split("|")[-2].encode("ISO-8859-1").decode("utf-8") + "@" + c.split("/playlist.m3u8")[-1].split("/")[-1])
+    r = czech_sort.sorted(ch)
+    t = ""
+    for i in r:
+        c = i.split("@")
+        t = t + '#EXTINF:-1 provider="Antik TV",' + c[0] + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/antik/" + str(c[1]) + ".m3u8\n"
+    t = "#EXTM3U\n" + t
+    response.content_type = 'text/plain; charset=UTF-8'
+    return t
+
+
+@route("/antik/list")
+def antik_list():
+    url = antik.playlist_url
+    if url == "":
+        return ""
+    r = requests.get(url).text
+    ch = []
+    r = r.split("/playlist.m3u8")
+    for c in r:
+        ch.append(c.split("|hls")[0].split("|")[-2].encode("ISO-8859-1").decode("utf-8") + "@" + c.split("/playlist.m3u8")[-1].split("/")[-1])
+    ch2 = []
+    r = czech_sort.sorted(ch)
+    for c in r:
+        ch2.append("<a href=/antik/" + c.split("@")[1] + ".m3u8>" + c.split("@")[0]  + "</a><br>")
+    return ",".join(ch2[:-1]).replace(">,", ">")
+
+
+@route("/antik/list2")
+def antik_list2():
+    url = antik.playlist_url2
+    if url == "":
+        return ""
+    r = requests.get(url).json()[0]["channels"]
+    t = ""
+    for ch in r:
+        t = t + "<b>" + ch["channel_title"] + "</b>:"
+        for s in ch["stream"]:
+            u = s["url"].split("/")[-2]
+            if "tzshift" not in u:
+                t = t + "<br><a href=/antik/" + u + ".m3u8>" + u  + "</a>"
+        t = t + "<br><br>|"
+    t = ",".join(czech_sort.sorted(t.split("|"))[1:])
+    return t
+
+
+@route('/antik_key/<key_id>')
+def antik_key(key_id):
+    global antik_key_cache
+    try:
+        return antik_key_cache[key_id]
+    except:
+        pass
+    try:
+        url = antik.request_template()["url"] + antik.request_template()["id"]
+        data = antik.request_data(key_id)
+        data = json.dumps(data, indent=2).encode('utf-8')
+        data_encrypt = antik.data_encrypt(data)
+        response = requests.post( url, data = data_encrypt, headers = {"Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 10; Build/1.110111.020)", "Accept-Encoding": "gzip"}).content
+        bin = antik.get_bin(response)
+        antik_key_cache[key_id] = bin
+        antik_key_cache["access"] = 1
+        return bin
+    except:
+        antik_key_cache["access"] = 0
+        return ''
+
+
+@route('/antik/<u>')
+def antik_play(u):
+    if antik_key_cache["access"] == 0:
+        response.content_type = "application/x-mpegURL"
+        return '''#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:10
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:10.000000,
+http://sledovanietv.sk/download/noAccess-sk0.ts
+#EXTINF:10.000000,
+http://sledovanietv.sk/download/noAccess-sk1.ts
+#EXT-X-ENDLIST'''
+    url = "http://195.181.174.88/live/" + u.replace(".m3u8", "/playlist.m3u8")
+    req = requests.get(url).text.replace("encrypted-file://", "/antik_key/")
+    ret=""
+    for line in req.splitlines():
+        if line[-3:] == ".ts":
+            ret += url.replace("playlist.m3u8", "")
+        ret += (line + "\n")
+    response.content_type = "application/x-mpegURL"
+    return ret
 
 
 @route("/")
