@@ -722,7 +722,7 @@ http://sledovanietv.sk/download/noAccess-sk0.ts
 http://sledovanietv.sk/download/noAccess-sk1.ts
 #EXT-X-ENDLIST'''
     url = "http://195.181.174.88/live/" + u.replace(".m3u8", "/playlist.m3u8")
-    req = requests.get(url).text.replace("encrypted-file://", "/antik_key/")
+    req = requests.get(url).text.replace("encrypted-file://", "http://" + HOST + ":" + str(PORT) + "/antik_key/")
     ret=""
     for line in req.splitlines():
         if line[-3:] == ".ts":
