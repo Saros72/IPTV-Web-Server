@@ -53,7 +53,7 @@ def get_catchup(id, utc, utcend):
     url =  "http://sledovanietv.sk/download/noAccess-cs.m3u8"
     sessid = get_sessid()
     if sessid != "":
-        req = requests.get("http://sledovanitv.cz/api/epg?time=" + d_start + "&duration=0&detail=0&channels=" + id + "&PHPSESSID=" + sessid, headers = headers).json()
+        req = requests.get("http://sledovanitv.cz/api/epg?time=" + d_start + "&duration=1439&detail=poster&channels=" + id + "&PHPSESSID=" + sessid, headers = headers).json()
         if req["status"] == 1:
             eventId = req["channels"][id][0]["eventId"]
             req = requests.get("https://sledovanitv.cz/api/get-stream-qualities?PHPSESSID=" + sessid).json()
