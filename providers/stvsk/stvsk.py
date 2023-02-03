@@ -48,7 +48,7 @@ if sessid != "":
 
 def get_catchup(id, utc, utcend):
     id = id.split(".")[0]
-    date_time_start = datetime.fromtimestamp(int(utc) + 1)
+    date_time_start = datetime.fromtimestamp(int(utc) + 60)
     d_start = date_time_start.strftime("%Y-%m-%d+%H:%M:%S")
     url =  "http://sledovanietv.sk/download/noAccess-cs.m3u8"
     sessid = get_sessid()
@@ -56,13 +56,6 @@ def get_catchup(id, utc, utcend):
         req = requests.get("http://sledovanietv.sk/api/epg?time=" + d_start + "&duration=1439&detail=poster&channels=" + id + "&PHPSESSID=" + sessid, headers = headers).json()
         if req["status"] == 1:
             eventId = req["channels"][id][0]["eventId"]
-            req = requests.get("https://sledovanietv.sk/api/get-stream-qualities?PHPSESSID=" + sessid).json()
-            q = []
-            for x in req["qualities"]:
-                if x["allowed"] == 1:
-                    q.append(x["id"])
-            q.sort()
-            quality = str(q[-1])
             req = requests.get("https://sledovanietv.sk/api/event-timeshift?format=m3u8&quality=" + quality + "&capabilities=" + kd + adaptive + "&force=true&eventId=" + eventId + "&overrun=1&PHPSESSID=" + sessid, headers = headers).json()
             if req["status"] == 1:
                 url = req["url"]
