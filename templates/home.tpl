@@ -27,6 +27,8 @@
 <a href="/touchtv/list">seznam</a> <a href="/touchtv/playlist">playlist</a><p><b>O2 TV SK</b>
 <a href="/o2tvsk/list">seznam</a> <a href="/o2tvsk/playlist">playlist</a><p><b>Antik TV (1)</b>
 <a href="/antik/list">seznam</a> <a href="/antik/playlist">playlist</a><p><b>Antik TV (2)</b>
-<a href="/antik/list2">seznam</a> <a href="/antik/playlist2">playlist</a></pre>
+<a href="/antik/list2">seznam</a> <a href="/antik/playlist2">playlist</a><p><b>Lepší TV</b>
+<a href="/lepsitv/list">seznam</a> <a href="/lepsitv/playlist">playlist</a><p><b>iVysílání ČT</b>
+<a href="/ivysilani/list">seznam</a> <a href="/ivysilani/playlist">playlist</a></pre>
         </body>
 </html>
