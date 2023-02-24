@@ -27,6 +27,8 @@ from providers.orange import orange
 from providers.sweet import sweet
 from providers.touchtv import touchtv
 from providers.antik import antik
+from providers.lepsitv import lepsitv
+from providers.ivysilani import ivysilani
 import czech_sort
 
 
@@ -44,6 +46,72 @@ bottle.debug(True)
 @route('/files/<filename:path>')
 def send_static(filename):
     return static_file(filename, root = FILES_DIR)
+
+
+@route("/ivysilani/playlist")
+def ivysilani_playlist():
+    t = ""
+    for x,y in ivysilani.channels.items():
+        t = t + '#EXTINF:-1 provider="iVysílání ČT" tvg-logo="' + y["logo"] + '",' + y["name"] + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/ivysilani/" + str(x) + ".m3u8\n"
+    if t != "":
+        t = "#EXTM3U\n" + t
+    response.content_type = 'text/plain; charset=UTF-8'
+    return t
+
+
+@route("/ivysilani/<id>")
+def ivysilani_play(id):
+    stream = ivysilani.get_stream(id)
+    response.content_type = "application/vnd.apple.mpegurl"
+    return redirect(stream)
+
+
+@route("/ivysilani/list")
+def ivysilani_list():
+    names = []
+    info = {'title': 'iVysílání ČT'}
+    try:
+        for x,y in ivysilani.channels.items():
+            names.append(('/ivysilani/' + str(x) + '.m3u8', y["name"]))    
+        info["names"] = names
+    except:
+        return ""
+    return template(style_links, info)
+
+
+@route("/lepsitv/playlist")
+def lepsitv_playlist():
+    t = ""
+    for x,y in lepsitv.channels.items():
+        t = t + '#EXTINF:-1 provider="Lepší TV" tvg-logo="' + y["logo"] + '"' + catchup + y["name"] + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/lepsitv/" + str(x) + ".m3u8\n"
+    if t != "":
+        t = "#EXTM3U\n" + t
+    response.content_type = 'text/plain; charset=UTF-8'
+    return t
+
+
+@route("/lepsitv/<id>")
+def lepsitv_play(id):
+    if 'utc' in request.query:
+        stream = lepsitv.get_stream(id,
+ str(request.query["utc"]))
+    else:
+        stream = lepsitv.get_stream(id, "")
+    response.content_type = "application/vnd.apple.mpegurl"
+    return redirect(stream)
+
+
+@route("/lepsitv/list")
+def lepsitv_list():
+    names = []
+    info = {'title': 'Lepší TV'}
+    try:
+        for x,y in lepsitv.channels.items():
+            names.append(('/lepsitv/' + str(x) + '.m3u8', y["name"]))    
+        info["names"] = names
+    except:
+        return ""
+    return template(style_links, info)
 
 
 @route("/touchtv/playlist")
