@@ -153,7 +153,7 @@ def touchtv_list():
 def sweet_playlist():
     t = ""
     for x,y in sweet.channels.items():
-        t = t + '#EXTINF:-1 provider="Sweet TV" group-title="' + y["group"] + '"' + ' tvg-logo="' + y["logo"] + '"' + catchup + y["name"] + "\n" + input_stream + "http://" + str(HOST) + ":" + str(PORT)  + "/sweet/" + str(x) + ".m3u8\n"
+        t = t + '#EXTINF:-1 provider="Sweet TV" group-title="' + y["group"] + '"' + ' tvg-logo="' + y["logo"] + '"' + catchup + y["name"] + "\n" + input_stream + "#EXTVLCOPT:http-user-agent=okhttp/3.12.12\nhttp://" + str(HOST) + ":" + str(PORT)  + "/sweet/" + str(x) + ".m3u8\n"
     if t != "":
         t = "#EXTM3U\n" + t
     response.content_type = 'text/plain; charset=UTF-8'
