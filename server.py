@@ -43,6 +43,10 @@ antik_key_cache = {"access": 1}
 bottle.debug(True)
 
 
+def patch_url(url, **kwargs):
+    return urlparse(url)._replace(query=urlencode(dict(parse_qsl(urlparse(url).query), **kwargs))).geturl()
+
+
 @route('/files/<filename:path>')
 def send_static(filename):
     return static_file(filename, root = FILES_DIR)
