@@ -29,6 +29,7 @@ from providers.touchtv import touchtv
 from providers.antik import antik
 from providers.lepsitv import lepsitv
 from providers.ivysilani import ivysilani
+from providers.eritv import eritv
 import czech_sort
 
 
@@ -407,6 +408,51 @@ def telly_list():
         return ""
     return template(style_links, info)
 
+@route("/eritv/playlist")
+def eritv_playlist():
+    t = ""
+    for x, y in eritv.channels.items():
+        t = t + '#EXTINF:-1 provider="eritv" tvg-logo="https://epg.tv.itself.cz/files/channel_logos/' + str(x) + '.png"' + catchup + y[0].replace(" HD", "") + "\n" + input_stream + "http://" + str(
+            HOST) + ":" + str(PORT) + "/eritv/" + str(x) + ".m3u8\n"
+    if t != "":
+        t = "#EXTM3U\n" + t
+    response.content_type = 'text/plain; charset=UTF-8'
+    return t
+
+
+@route("/eritv/<id>")
+def eritv_play(id):
+    if 'utc' in request.query:
+        if 'utcend' in request.query:
+            end = request.query["utcend"]
+        else:
+            now = int(datetime.now().timestamp())
+            end = int(request.query["utc"]) + 10800
+            if end > now:
+                end = now - 60
+        try:
+            stream = eritv.get_catchup(str(id.split(".")[0]),
+                                       request.query["utc"], str(end))
+        except:
+            stream = eritv.channels[int(id.split(".")[0])][1]
+    else:
+        stream = eritv.channels[int(id.split(".")[0])][1]
+    response.content_type = "application/x-mpegURL"
+    return redirect(stream)
+
+
+@route("/eritv/list")
+def eritv_list():
+    names = []
+    info = {'title': 'Eritv'}
+    try:
+        for x, y in eritv.channels.items():
+            names.append(('/eritv/' + str(x) + '.m3u8', y[0].replace(" HD", "")))
+
+        info["names"] = names
+    except:
+        return ""
+    return template(style_links, info)
 
 @route("/rebit/playlist")
 def rebit_playlist():
